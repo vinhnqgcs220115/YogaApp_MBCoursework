@@ -2,6 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- For QR code camera scanning (if needed later) -->
+    <uses-permission android:name="android.permission.CAMERA" /> <!-- For saving QR codes to gallery (if implementing full save feature) -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+
     <application
         android:name=".YogaAdminApp"
         android:allowBackup="true"
@@ -13,13 +20,40 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.YogaAdmin">
         <activity
+            android:name=".QRCodeActivity"
+            android:exported="false"
+            android:parentActivityName=".CourseDetailActivity"
+            android:theme="@style/Theme.YogaAdmin" />
+        <!-- Course Detail Activity -->
+        <activity
+            android:name=".CourseDetailActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/Theme.YogaAdmin" /> <!-- Schedule Detail Activity -->
+        <activity
+            android:name=".ScheduleDetailActivity"
+            android:exported="false"
+            android:parentActivityName=".ScheduleActivity"
+            android:theme="@style/Theme.YogaAdmin" /> <!-- Add/Edit Schedule Activity -->
+        <activity
+            android:name=".AddEditScheduleActivity"
+            android:exported="false"
+            android:parentActivityName=".ScheduleActivity"
+            android:theme="@style/Theme.YogaAdmin" /> <!-- Schedule Management Activity -->
+        <activity
             android:name=".ScheduleActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/Theme.YogaAdmin" /> <!-- Add/Edit Course Activity -->
         <activity
             android:name=".AddEditCourseActivity"
             android:exported="false"
-            android:parentActivityName=".MainActivity" />
-        <activity android:name=".ui.MainActivity">
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/Theme.YogaAdmin" /> <!-- Main Activity -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.YogaAdmin">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

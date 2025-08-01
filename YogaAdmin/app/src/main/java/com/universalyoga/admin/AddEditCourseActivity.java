@@ -1,7 +1,9 @@
 package com.universalyoga.admin;
 
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -9,7 +11,9 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
+import com.google.android.material.textfield.TextInputLayout;
 import com.universalyoga.admin.data.database.AppDatabase;
 import com.universalyoga.admin.data.dao.YogaCourseDao;
 import com.universalyoga.admin.data.entity.YogaCourse;
@@ -22,12 +26,18 @@ public class AddEditCourseActivity extends AppCompatActivity {
 
     private Spinner spinnerDayOfWeek, spinnerTime, spinnerType;
     private EditText etCapacity, etDuration, etPrice, etDescription;
+    private TextInputLayout tilCapacity, tilDuration, tilPrice, tilDescription;
     private Button btnSave, btnClear;
 
     private YogaCourseDao dao;
     private ExecutorService executor;
     private int courseId = -1; // -1 means new course, otherwise editing existing
     private YogaCourse existingCourse;
+
+    // Real-time validation flags
+    private boolean isCapacityValid = false;
+    private boolean isDurationValid = false;
+    private boolean isPriceValid = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +48,7 @@ public class AddEditCourseActivity extends AppCompatActivity {
         initDatabase();
         setupSpinners();
         checkForExistingCourse();
+        setupRealTimeValidation();
         setupClickListeners();
     }
 
@@ -49,6 +60,13 @@ public class AddEditCourseActivity extends AppCompatActivity {
         etDuration = findViewById(R.id.etDuration);
         etPrice = findViewById(R.id.etPrice);
         etDescription = findViewById(R.id.etDescription);
+
+        // TextInputLayouts for better validation UX
+        tilCapacity = findViewById(R.id.tilCapacity);
+        tilDuration = findViewById(R.id.tilDuration);
+        tilPrice = findViewById(R.id.tilPrice);
+        tilDescription = findViewById(R.id.tilDescription);
+
         btnSave = findViewById(R.id.btnSave);
         btnClear = findViewById(R.id.btnClear);
     }
@@ -67,19 +85,21 @@ public class AddEditCourseActivity extends AppCompatActivity {
 
         // Time slots - More comprehensive time options
         String[] timeSlots = {
-                "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
-                "12:00", "13:00", "14:00", "15:00", "16:00", "17:00",
-                "18:00", "19:00", "20:00", "21:00"
+                "06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30",
+                "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
+                "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30",
+                "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00"
         };
         ArrayAdapter<String> timeAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, timeSlots);
         timeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerTime.setAdapter(timeAdapter);
 
-        // Yoga types
+        // Yoga types - Enhanced list
         String[] yogaTypes = {
                 "Flow Yoga", "Aerial Yoga", "Family Yoga", "Hatha Yoga",
                 "Vinyasa Yoga", "Yin Yoga", "Hot Yoga", "Power Yoga",
-                "Restorative Yoga", "Kundalini Yoga"
+                "Restorative Yoga", "Kundalini Yoga", "Ashtanga Yoga",
+                "Bikram Yoga", "Prenatal Yoga", "Senior Yoga", "Kids Yoga"
         };
         ArrayAdapter<String> typeAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, yogaTypes);
         typeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -102,6 +122,192 @@ public class AddEditCourseActivity extends AppCompatActivity {
         etCapacity.setText("15");
         etDuration.setText("60");
         etPrice.setText("20.00");
+
+        // Set default validations to true for new courses with defaults
+        isCapacityValid = true;
+        isDurationValid = true;
+        isPriceValid = true;
+        updateSaveButtonState();
+    }
+
+    private void setupRealTimeValidation() {
+        // Capacity validation
+        etCapacity.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                validateCapacity(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        // Duration validation
+        etDuration.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                validateDuration(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        // Price validation
+        etPrice.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                validatePrice(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        // Description validation (optional but with character count)
+        etDescription.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                updateDescriptionCounter(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+
+    private void validateCapacity(String capacityStr) {
+        if (TextUtils.isEmpty(capacityStr)) {
+            tilCapacity.setError("Capacity is required");
+            tilCapacity.setErrorEnabled(true);
+            isCapacityValid = false;
+        } else {
+            try {
+                int capacity = Integer.parseInt(capacityStr);
+                if (capacity <= 0) {
+                    tilCapacity.setError("Capacity must be greater than 0");
+                    tilCapacity.setErrorEnabled(true);
+                    isCapacityValid = false;
+                } else if (capacity > 100) {
+                    tilCapacity.setError("Capacity cannot exceed 100");
+                    tilCapacity.setErrorEnabled(true);
+                    isCapacityValid = false;
+                } else {
+                    tilCapacity.setError(null);
+                    tilCapacity.setErrorEnabled(false);
+                    isCapacityValid = true;
+                }
+            } catch (NumberFormatException e) {
+                tilCapacity.setError("Please enter a valid number");
+                tilCapacity.setErrorEnabled(true);
+                isCapacityValid = false;
+            }
+        }
+        updateSaveButtonState();
+    }
+
+    private void validateDuration(String durationStr) {
+        if (TextUtils.isEmpty(durationStr)) {
+            tilDuration.setError("Duration is required");
+            tilDuration.setErrorEnabled(true);
+            isDurationValid = false;
+        } else {
+            try {
+                int duration = Integer.parseInt(durationStr);
+                if (duration <= 0) {
+                    tilDuration.setError("Duration must be greater than 0");
+                    tilDuration.setErrorEnabled(true);
+                    isDurationValid = false;
+                } else if (duration > 300) {
+                    tilDuration.setError("Duration cannot exceed 300 minutes");
+                    tilDuration.setErrorEnabled(true);
+                    isDurationValid = false;
+                } else {
+                    tilDuration.setError(null);
+                    tilDuration.setErrorEnabled(false);
+                    isDurationValid = true;
+                }
+            } catch (NumberFormatException e) {
+                tilDuration.setError("Please enter a valid number");
+                tilDuration.setErrorEnabled(true);
+                isDurationValid = false;
+            }
+        }
+        updateSaveButtonState();
+    }
+
+    private void validatePrice(String priceStr) {
+        if (TextUtils.isEmpty(priceStr)) {
+            tilPrice.setError("Price is required");
+            tilPrice.setErrorEnabled(true);
+            isPriceValid = false;
+        } else {
+            try {
+                double price = Double.parseDouble(priceStr);
+                if (price <= 0) {
+                    tilPrice.setError("Price must be greater than £0");
+                    tilPrice.setErrorEnabled(true);
+                    isPriceValid = false;
+                } else if (price > 1000) {
+                    tilPrice.setError("Price cannot exceed £1000");
+                    tilPrice.setErrorEnabled(true);
+                    isPriceValid = false;
+                } else {
+                    tilPrice.setError(null);
+                    tilPrice.setErrorEnabled(false);
+                    isPriceValid = true;
+                }
+            } catch (NumberFormatException e) {
+                tilPrice.setError("Please enter a valid price (e.g., 20.50)");
+                tilPrice.setErrorEnabled(true);
+                isPriceValid = false;
+            }
+        }
+        updateSaveButtonState();
+    }
+
+    private void updateDescriptionCounter(String description) {
+        int length = description.length();
+        int maxLength = 500; // Set reasonable limit
+
+        if (length > maxLength) {
+            tilDescription.setError("Description too long (" + length + "/" + maxLength + ")");
+            tilDescription.setErrorEnabled(true);
+        } else {
+            tilDescription.setError(null);
+            tilDescription.setErrorEnabled(false);
+            if (length > 0) {
+                tilDescription.setHelperText(length + "/" + maxLength + " characters");
+            } else {
+                tilDescription.setHelperText("Add a description (optional)");
+            }
+        }
+    }
+
+    private void updateSaveButtonState() {
+        boolean allValid = isCapacityValid && isDurationValid && isPriceValid;
+        btnSave.setEnabled(allValid);
+
+        // Visual feedback
+        if (allValid) {
+            btnSave.setBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_green_dark));
+            btnSave.setText("Save Course");
+        } else {
+            btnSave.setBackgroundColor(ContextCompat.getColor(this, android.R.color.darker_gray));
+            btnSave.setText("Please fix errors above");
+        }
     }
 
     private void setupClickListeners() {
@@ -132,6 +338,12 @@ public class AddEditCourseActivity extends AppCompatActivity {
         etDuration.setText(String.valueOf(course.getDuration()));
         etPrice.setText(String.valueOf(course.getPrice()));
         etDescription.setText(course.getDescription() != null ? course.getDescription() : "");
+
+        // Trigger validation for existing data
+        validateCapacity(String.valueOf(course.getCapacity()));
+        validateDuration(String.valueOf(course.getDuration()));
+        validatePrice(String.valueOf(course.getPrice()));
+        updateDescriptionCounter(course.getDescription() != null ? course.getDescription() : "");
     }
 
     private void setSpinnerSelection(Spinner spinner, String value) {
@@ -145,7 +357,8 @@ public class AddEditCourseActivity extends AppCompatActivity {
     }
 
     private void saveCourse() {
-        if (!validateInputs()) {
+        if (!allFieldsValid()) {
+            Toast.makeText(this, "Please fix all validation errors", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -155,6 +368,10 @@ public class AddEditCourseActivity extends AppCompatActivity {
         } else {
             performSave();
         }
+    }
+
+    private boolean allFieldsValid() {
+        return isCapacityValid && isDurationValid && isPriceValid;
     }
 
     private void checkForDuplicateAndSave() {
@@ -174,13 +391,29 @@ public class AddEditCourseActivity extends AppCompatActivity {
             }
 
             if (isDuplicate) {
-                runOnUiThread(() ->
-                        Toast.makeText(this, "A course with the same day, time, and type already exists!", Toast.LENGTH_LONG).show()
-                );
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "A course with the same day, time, and type already exists!", Toast.LENGTH_LONG).show();
+                    // Visual feedback on conflicting fields
+                    highlightDuplicateFields();
+                });
             } else {
                 performSave();
             }
         });
+    }
+
+    private void highlightDuplicateFields() {
+        // Temporarily highlight the conflicting spinners
+        spinnerDayOfWeek.setBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_red_light));
+        spinnerTime.setBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_red_light));
+        spinnerType.setBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_red_light));
+
+        // Reset background after 3 seconds
+        spinnerDayOfWeek.postDelayed(() -> {
+            spinnerDayOfWeek.setBackgroundColor(ContextCompat.getColor(this, android.R.color.transparent));
+            spinnerTime.setBackgroundColor(ContextCompat.getColor(this, android.R.color.transparent));
+            spinnerType.setBackgroundColor(ContextCompat.getColor(this, android.R.color.transparent));
+        }, 3000);
     }
 
     private void performSave() {
@@ -210,71 +443,6 @@ public class AddEditCourseActivity extends AppCompatActivity {
         });
     }
 
-    private boolean validateInputs() {
-        // Clear previous errors
-        etCapacity.setError(null);
-        etDuration.setError(null);
-        etPrice.setError(null);
-
-        boolean isValid = true;
-
-        // Validate capacity
-        String capacityStr = etCapacity.getText().toString().trim();
-        if (TextUtils.isEmpty(capacityStr)) {
-            etCapacity.setError("Capacity is required");
-            isValid = false;
-        } else {
-            try {
-                int capacity = Integer.parseInt(capacityStr);
-                if (capacity <= 0 || capacity > 100) {
-                    etCapacity.setError("Capacity must be between 1 and 100");
-                    isValid = false;
-                }
-            } catch (NumberFormatException e) {
-                etCapacity.setError("Please enter valid number");
-                isValid = false;
-            }
-        }
-
-        // Validate duration
-        String durationStr = etDuration.getText().toString().trim();
-        if (TextUtils.isEmpty(durationStr)) {
-            etDuration.setError("Duration is required");
-            isValid = false;
-        } else {
-            try {
-                int duration = Integer.parseInt(durationStr);
-                if (duration <= 0 || duration > 300) {
-                    etDuration.setError("Duration must be between 1 and 300 minutes");
-                    isValid = false;
-                }
-            } catch (NumberFormatException e) {
-                etDuration.setError("Please enter valid number");
-                isValid = false;
-            }
-        }
-
-        // Validate price
-        String priceStr = etPrice.getText().toString().trim();
-        if (TextUtils.isEmpty(priceStr)) {
-            etPrice.setError("Price is required");
-            isValid = false;
-        } else {
-            try {
-                double price = Double.parseDouble(priceStr);
-                if (price <= 0 || price > 1000) {
-                    etPrice.setError("Price must be between £0.01 and £1000");
-                    isValid = false;
-                }
-            } catch (NumberFormatException e) {
-                etPrice.setError("Please enter valid price");
-                isValid = false;
-            }
-        }
-
-        return isValid;
-    }
-
     private YogaCourse createCourseFromInputs() {
         String dayOfWeek = spinnerDayOfWeek.getSelectedItem().toString();
         String time = spinnerTime.getSelectedItem().toString();
@@ -296,10 +464,22 @@ public class AddEditCourseActivity extends AppCompatActivity {
         etPrice.setText("");
         etDescription.setText("");
 
-        // Clear any error messages
-        etCapacity.setError(null);
-        etDuration.setError(null);
-        etPrice.setError(null);
+        // Clear all validation states
+        tilCapacity.setError(null);
+        tilCapacity.setErrorEnabled(false);
+        tilDuration.setError(null);
+        tilDuration.setErrorEnabled(false);
+        tilPrice.setError(null);
+        tilPrice.setErrorEnabled(false);
+        tilDescription.setError(null);
+        tilDescription.setErrorEnabled(false);
+        tilDescription.setHelperText("Add a description (optional)");
+
+        // Reset validation flags
+        isCapacityValid = false;
+        isDurationValid = false;
+        isPriceValid = false;
+        updateSaveButtonState();
     }
 
     @Override

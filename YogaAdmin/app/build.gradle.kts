@@ -52,4 +52,15 @@ dependencies {
     // Firebase Firestore (for sync) and Auth
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.auth)
+    implementation(libs.firebase.core)
+
+    // For SwipeRefreshLayout (you're using it in MainActivity)
+    implementation(libs.swiperefreshlayout)
+
+    // For QR Code generation
+    implementation(libs.zxing.android.embedded)
+    implementation(libs.core)
+
+    // For better date/time pickers
+    implementation(libs.material.calendarview)
 }
