@@ -5,13 +5,22 @@
     <item
         android:id="@+id/action_sync_firebase"
         android:title="Sync to Cloud"
-        android:icon="@android:drawable/stat_sys_upload"
-        app:showAsAction="ifRoom" />
+        android:icon="@drawable/ic_cloud_sync"
+        app:showAsAction="ifRoom"
+        android:orderInCategory="1" />
+
+    <item
+        android:id="@+id/action_export_data"
+        android:title="Export Data"
+        android:icon="@drawable/ic_export"
+        app:showAsAction="never"
+        android:orderInCategory="2" />
 
     <item
         android:id="@+id/action_reset_database"
         android:title="Reset Database"
-        android:icon="@android:drawable/ic_menu_delete"
-        app:showAsAction="never" />
+        android:icon="@drawable/ic_delete_forever"
+        app:showAsAction="never"
+        android:orderInCategory="3" />
 
 </menu>

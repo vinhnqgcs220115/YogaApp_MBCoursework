@@ -6,7 +6,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.SearchView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -20,6 +19,7 @@ import com.universalyoga.admin.adapter.YogaCourseAdapter;
 import com.universalyoga.admin.data.database.AppDatabase;
 import com.universalyoga.admin.data.dao.YogaCourseDao;
 import com.universalyoga.admin.data.entity.YogaCourse;
+import com.universalyoga.admin.data.entity.Schedule;
 import com.universalyoga.admin.utils.FirebaseSync;
 
 import java.util.List;
@@ -29,7 +29,7 @@ import java.util.concurrent.Executors;
 public class MainActivity extends AppCompatActivity implements YogaCourseAdapter.OnCourseClickListener {
 
     private RecyclerView recyclerCourses;
-    private TextView tvEmptyState;
+    private androidx.constraintlayout.widget.ConstraintLayout tvEmptyState;
     private FloatingActionButton fabAddCourse;
     private SwipeRefreshLayout swipeRefreshLayout;
     private SearchView searchView;
@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements YogaCourseAdapter
     private void initDatabase() {
         dao = AppDatabase.getInstance(this).yogaCourseDao();
         executor = Executors.newSingleThreadExecutor();
-        firebaseSync = new FirebaseSync();
+        firebaseSync = new FirebaseSync(this);
     }
 
     private void setupRecyclerView() {
@@ -223,29 +223,65 @@ public class MainActivity extends AppCompatActivity implements YogaCourseAdapter
     }
 
     private void resetDatabase() {
+        // Show a progress dialog or loading state
+        runOnUiThread(() -> Toast.makeText(this, "Resetting database and cloud data...", Toast.LENGTH_SHORT).show());
+
         executor.execute(() -> {
+            // Step 1: Clear local SQLite database
             dao.deleteAllCourses();
             // Schedules will be automatically deleted due to CASCADE foreign key
 
-            runOnUiThread(() -> {
-                Toast.makeText(this, "Database reset successfully", Toast.LENGTH_SHORT).show();
-                loadCourses();
+            // Step 2: Clear Firestore data
+            firebaseSync.resetFirestoreDatabase(new FirebaseSync.SyncCallback() {
+                @Override
+                public void onSuccess() {
+                    runOnUiThread(() -> {
+                        Toast.makeText(MainActivity.this, "✅ Database and cloud data reset successfully!", Toast.LENGTH_SHORT).show();
+                        loadCourses(); // Refresh the UI
+                    });
+                }
+
+                @Override
+                public void onError(String error) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(MainActivity.this, "⚠️ Local database reset, but cloud sync failed: " + error, Toast.LENGTH_LONG).show();
+                        loadCourses(); // Still refresh the UI to show local changes
+                    });
+                }
             });
         });
     }
 
     private void syncWithFirebase() {
-        Toast.makeText(this, "Starting Firebase sync...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Starting smart Firebase sync...", Toast.LENGTH_SHORT).show();
 
         executor.execute(() -> {
             List<YogaCourse> courses = dao.getAllCourses();
 
-            firebaseSync.syncCoursesToFirestore(courses, new FirebaseSync.SyncCallback() {
+            // Use smart sync that handles additions, updates, and deletions
+            firebaseSync.smartSyncCoursesToFirestore(courses, new FirebaseSync.SyncCallback() {
                 @Override
                 public void onSuccess() {
-                    runOnUiThread(() ->
-                            Toast.makeText(MainActivity.this, "Sync completed successfully!", Toast.LENGTH_SHORT).show()
-                    );
+                    // Also sync schedules
+                    executor.execute(() -> {
+                        List<Schedule> schedules = AppDatabase.getInstance(MainActivity.this).scheduleDao().getAllSchedules();
+
+                        firebaseSync.smartSyncSchedulesToFirestore(schedules, new FirebaseSync.SyncCallback() {
+                            @Override
+                            public void onSuccess() {
+                                runOnUiThread(() ->
+                                        Toast.makeText(MainActivity.this, "Complete sync finished successfully!", Toast.LENGTH_SHORT).show()
+                                );
+                            }
+
+                            @Override
+                            public void onError(String error) {
+                                runOnUiThread(() ->
+                                        Toast.makeText(MainActivity.this, "Courses synced, but schedules sync failed: " + error, Toast.LENGTH_LONG).show()
+                                );
+                            }
+                        });
+                    });
                 }
 
                 @Override
@@ -290,12 +326,27 @@ public class MainActivity extends AppCompatActivity implements YogaCourseAdapter
 
     private void deleteCourse(YogaCourse course) {
         executor.execute(() -> {
+            // Delete from local database first
             dao.delete(course);
             // Associated schedules will be automatically deleted due to CASCADE
 
-            runOnUiThread(() -> {
-                Toast.makeText(this, "Course deleted successfully", Toast.LENGTH_SHORT).show();
-                loadCourses();
+            // Then delete from Firestore
+            firebaseSync.deleteCourseFromFirestore(course.getId(), new FirebaseSync.SyncCallback() {
+                @Override
+                public void onSuccess() {
+                    runOnUiThread(() -> {
+                        Toast.makeText(MainActivity.this, "Course deleted successfully from both local and cloud", Toast.LENGTH_SHORT).show();
+                        loadCourses();
+                    });
+                }
+
+                @Override
+                public void onError(String error) {
+                    runOnUiThread(() -> {
+                        Toast.makeText(MainActivity.this, "Course deleted locally, but cloud deletion failed: " + error, Toast.LENGTH_LONG).show();
+                        loadCourses();
+                    });
+                }
             });
         });
     }

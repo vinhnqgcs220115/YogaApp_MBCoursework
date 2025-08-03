@@ -15,6 +15,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
@@ -34,7 +35,8 @@ import java.util.concurrent.Executors;
 public class ScheduleActivity extends AppCompatActivity implements ScheduleAdapter.OnScheduleClickListener {
 
     private RecyclerView recyclerSchedules;
-    private TextView tvEmptyState;
+    private ConstraintLayout tvEmptyState;
+    private TextView emptyStateTitle;
     private FloatingActionButton fabAddSchedule;
     private SwipeRefreshLayout swipeRefreshLayout;
     private Spinner spinnerCourseFilter;
@@ -68,6 +70,7 @@ public class ScheduleActivity extends AppCompatActivity implements ScheduleAdapt
     private void initViews() {
         recyclerSchedules = findViewById(R.id.recyclerSchedules);
         tvEmptyState = findViewById(R.id.tvEmptyState);
+        emptyStateTitle = findViewById(R.id.emptyStateTitle);
         fabAddSchedule = findViewById(R.id.fabAddSchedule);
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
         spinnerCourseFilter = findViewById(R.id.spinnerCourseFilter);
@@ -217,7 +220,7 @@ public class ScheduleActivity extends AppCompatActivity implements ScheduleAdapt
             String emptyMessage = selectedCourseId == -1 ?
                     "No schedules found" :
                     "No schedules found for selected course";
-            tvEmptyState.setText(emptyMessage);
+            emptyStateTitle.setText(emptyMessage);
         }
     }
 

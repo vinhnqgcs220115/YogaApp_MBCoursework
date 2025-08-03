@@ -1,3 +1,69 @@
 <resources>
-    <string name="app_name">YogaAdmin</string>
+    <string name="app_name">Universal Yoga Admin</string>
+
+    <!-- Activity Titles -->
+    <string name="title_add_course">Add New Course</string>
+    <string name="title_edit_course">Edit Course</string>
+    <string name="title_add_schedule">Add New Schedule</string>
+    <string name="title_edit_schedule">Edit Schedule</string>
+    <string name="title_course_detail">Course Details</string>
+    <string name="title_schedule_detail">Schedule Details</string>
+    <string name="title_schedules">Class Schedules</string>
+
+    <!-- Button Labels -->
+    <string name="btn_save">Save</string>
+    <string name="btn_clear">Clear</string>
+    <string name="btn_edit">Edit</string>
+    <string name="btn_delete">Delete</string>
+    <string name="btn_cancel">Cancel</string>
+    <string name="btn_confirm">Confirm</string>
+    <string name="btn_add">Add</string>
+    <string name="btn_search">Search</string>
+    <string name="btn_filter">Filter</string>
+    <string name="btn_sync">Sync</string>
+    <string name="btn_export">Export</string>
+    <string name="btn_share">Share</string>
+
+    <!-- Field Labels -->
+    <string name="label_course_type">Course Type</string>
+    <string name="label_day_of_week">Day of Week</string>
+    <string name="label_time">Time</string>
+    <string name="label_capacity">Capacity</string>
+    <string name="label_duration">Duration</string>
+    <string name="label_price">Price</string>
+    <string name="label_description">Description</string>
+    <string name="label_teacher">Teacher</string>
+    <string name="label_date">Date</string>
+    <string name="label_comments">Comments</string>
+
+    <!-- Messages -->
+    <string name="msg_no_courses">No yoga courses yet</string>
+    <string name="msg_no_schedules">No schedules found</string>
+    <string name="msg_course_saved">Course saved successfully</string>
+    <string name="msg_schedule_saved">Schedule saved successfully</string>
+    <string name="msg_course_deleted">Course deleted successfully</string>
+    <string name="msg_schedule_deleted">Schedule deleted successfully</string>
+    <string name="msg_sync_success">Sync completed successfully</string>
+    <string name="msg_sync_failed">Sync failed</string>
+
+    <!-- Validation Messages -->
+    <string name="error_required_field">This field is required</string>
+    <string name="error_invalid_capacity">Please enter a valid capacity</string>
+    <string name="error_invalid_duration">Please enter a valid duration</string>
+    <string name="error_invalid_price">Please enter a valid price</string>
+    <string name="error_duplicate_course">A course with the same details already exists</string>
+
+    <!-- Search and Filter -->
+    <string name="hint_search_courses">Search courses by type, day, or description...</string>
+    <string name="hint_search_teacher">Search by teacher name...</string>
+    <string name="filter_all_courses">All Courses</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_add_course">Add new course</string>
+    <string name="cd_add_schedule">Add new schedule</string>
+    <string name="cd_edit_item">Edit item</string>
+    <string name="cd_delete_item">Delete item</string>
+    <string name="cd_calendar">Calendar</string>
+    <string name="cd_person">Person</string>
+    <string name="cd_schedule">Schedule</string>
 </resources>

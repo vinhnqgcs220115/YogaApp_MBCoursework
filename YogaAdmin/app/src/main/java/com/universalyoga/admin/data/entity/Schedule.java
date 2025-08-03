@@ -1,31 +1,14 @@
 package com.universalyoga.admin.data.entity;
 
-import androidx.room.Entity;
-import androidx.room.ForeignKey;
-import androidx.room.Index;
-import androidx.room.PrimaryKey;
-
-@Entity(
-        tableName = "schedules",
-        foreignKeys = @ForeignKey(
-                entity = YogaCourse.class,
-                parentColumns = "id",
-                childColumns = "courseId",
-                onDelete = ForeignKey.CASCADE
-        ),
-        indices = {@Index("courseId")}
-)
 public class Schedule {
 
-    @PrimaryKey(autoGenerate = true)
     private int id;
-
     private int courseId;
     private String date;        // ISO format yyyy-MM-dd
     private String teacher;
     private String comments;
 
-    // Default constructor (required by Room)
+    // Default constructor
     public Schedule() {}
 
     // Constructor

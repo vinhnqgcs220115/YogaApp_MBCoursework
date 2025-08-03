@@ -36,7 +36,7 @@ public class QRCodeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_qr_code);
+        setContentView(R.layout.activity_qrcode);
 
         qrContent = getIntent().getStringExtra("qr_content");
         qrTitle = getIntent().getStringExtra("title");

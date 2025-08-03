@@ -2,46 +2,45 @@ package com.universalyoga.admin.data.database;
 
 import android.content.Context;
 
-import androidx.room.Database;
-import androidx.room.Room;
-import androidx.room.RoomDatabase;
-
 import com.universalyoga.admin.data.dao.ScheduleDao;
 import com.universalyoga.admin.data.dao.YogaCourseDao;
-import com.universalyoga.admin.data.entity.Schedule;
-import com.universalyoga.admin.data.entity.YogaCourse;
 
-@Database(
-        entities = {YogaCourse.class, Schedule.class},
-        version = 2, // Incremented version due to schema change
-        exportSchema = false
-)
-public abstract class AppDatabase extends RoomDatabase {
+public class AppDatabase {
 
-    private static final String DATABASE_NAME = "yoga_admin_db";
     private static volatile AppDatabase INSTANCE;
+    private DatabaseHelper dbHelper;
+    private YogaCourseDao yogaCourseDao;
+    private ScheduleDao scheduleDao;
 
-    public abstract YogaCourseDao yogaCourseDao();
-    public abstract ScheduleDao scheduleDao();
+    private AppDatabase(Context context) {
+        dbHelper = DatabaseHelper.getInstance(context);
+        yogaCourseDao = new YogaCourseDao(dbHelper);
+        scheduleDao = new ScheduleDao(dbHelper);
+    }
 
     public static AppDatabase getInstance(Context context) {
         if (INSTANCE == null) {
             synchronized (AppDatabase.class) {
                 if (INSTANCE == null) {
-                    INSTANCE = Room.databaseBuilder(
-                                    context.getApplicationContext(),
-                                    AppDatabase.class,
-                                    DATABASE_NAME
-                            )
-                            .fallbackToDestructiveMigration()
-                            .build();
+                    INSTANCE = new AppDatabase(context);
                 }
             }
         }
         return INSTANCE;
     }
 
+    public YogaCourseDao yogaCourseDao() {
+        return yogaCourseDao;
+    }
+
+    public ScheduleDao scheduleDao() {
+        return scheduleDao;
+    }
+
     public static void destroyInstance() {
-        INSTANCE = null;
+        if (INSTANCE != null) {
+            DatabaseHelper.destroyInstance();
+            INSTANCE = null;
+        }
     }
 }

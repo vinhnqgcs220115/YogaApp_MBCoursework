@@ -1,14 +1,8 @@
 package com.universalyoga.admin.data.entity;
 
-import androidx.room.Entity;
-import androidx.room.PrimaryKey;
-
-@Entity(tableName = "yoga_courses")
 public class YogaCourse {
 
-    @PrimaryKey(autoGenerate = true)
     private int id;
-
     private String dayOfWeek;    // Required: Monday, Tuesday, etc.
     private String time;         // Required: 10:00, 11:00, etc.
     private int capacity;        // Required: number of persons
@@ -17,7 +11,7 @@ public class YogaCourse {
     private String type;         // Required: Flow Yoga, Aerial Yoga, etc.
     private String description;  // Optional: additional description
 
-    // Default constructor (required by Room)
+    // Default constructor
     public YogaCourse() {}
 
     // Constructor with required fields

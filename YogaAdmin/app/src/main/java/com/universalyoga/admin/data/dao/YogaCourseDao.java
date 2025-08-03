@@ -1,67 +1,275 @@
 package com.universalyoga.admin.data.dao;
 
-import androidx.room.Dao;
-import androidx.room.Delete;
-import androidx.room.Insert;
-import androidx.room.Query;
-import androidx.room.Update;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
+import com.universalyoga.admin.data.database.DatabaseHelper;
 import com.universalyoga.admin.data.entity.YogaCourse;
 
+import java.util.ArrayList;
 import java.util.List;
 
-@Dao
-public interface YogaCourseDao {
+public class YogaCourseDao {
 
-    @Insert
-    long insert(YogaCourse course);
+    private static final String TAG = "YogaCourseDao";
+    private DatabaseHelper dbHelper;
 
-    @Update
-    void update(YogaCourse course);
+    public YogaCourseDao(DatabaseHelper dbHelper) {
+        this.dbHelper = dbHelper;
+    }
 
-    @Delete
-    void delete(YogaCourse course);
+    public long insert(YogaCourse course) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
 
-    @Query("SELECT * FROM yoga_courses ORDER BY dayOfWeek, time")
-    List<YogaCourse> getAllCourses();
+        values.put(DatabaseHelper.COLUMN_DAY_OF_WEEK, course.getDayOfWeek());
+        values.put(DatabaseHelper.COLUMN_TIME, course.getTime());
+        values.put(DatabaseHelper.COLUMN_CAPACITY, course.getCapacity());
+        values.put(DatabaseHelper.COLUMN_DURATION, course.getDuration());
+        values.put(DatabaseHelper.COLUMN_PRICE, course.getPrice());
+        values.put(DatabaseHelper.COLUMN_TYPE, course.getType());
+        values.put(DatabaseHelper.COLUMN_DESCRIPTION, course.getDescription());
 
-    @Query("SELECT * FROM yoga_courses WHERE id = :id")
-    YogaCourse getCourseById(int id);
+        long id = db.insert(DatabaseHelper.TABLE_YOGA_COURSES, null, values);
+        Log.d(TAG, "Inserted course with ID: " + id);
+        return id;
+    }
 
-    @Query("SELECT * FROM yoga_courses WHERE type LIKE '%' || :type || '%' ORDER BY dayOfWeek, time")
-    List<YogaCourse> getCoursesByType(String type);
+    public void update(YogaCourse course) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
 
-    @Query("SELECT * FROM yoga_courses WHERE dayOfWeek = :dayOfWeek ORDER BY time")
-    List<YogaCourse> getCoursesByDay(String dayOfWeek);
+        values.put(DatabaseHelper.COLUMN_DAY_OF_WEEK, course.getDayOfWeek());
+        values.put(DatabaseHelper.COLUMN_TIME, course.getTime());
+        values.put(DatabaseHelper.COLUMN_CAPACITY, course.getCapacity());
+        values.put(DatabaseHelper.COLUMN_DURATION, course.getDuration());
+        values.put(DatabaseHelper.COLUMN_PRICE, course.getPrice());
+        values.put(DatabaseHelper.COLUMN_TYPE, course.getType());
+        values.put(DatabaseHelper.COLUMN_DESCRIPTION, course.getDescription());
 
-    @Query("SELECT * FROM yoga_courses WHERE " +
-            "type LIKE '%' || :searchQuery || '%' OR " +
-            "dayOfWeek LIKE '%' || :searchQuery || '%' OR " +
-            "description LIKE '%' || :searchQuery || '%' " +
-            "ORDER BY dayOfWeek, time")
-    List<YogaCourse> searchCourses(String searchQuery);
+        int rowsAffected = db.update(DatabaseHelper.TABLE_YOGA_COURSES, values,
+                DatabaseHelper.COLUMN_ID + " = ?",
+                new String[]{String.valueOf(course.getId())});
 
-    @Query("SELECT * FROM yoga_courses WHERE price BETWEEN :minPrice AND :maxPrice ORDER BY price")
-    List<YogaCourse> getCoursesByPriceRange(double minPrice, double maxPrice);
+        Log.d(TAG, "Updated course. Rows affected: " + rowsAffected);
+    }
 
-    @Query("DELETE FROM yoga_courses")
-    void deleteAllCourses();
+    public void delete(YogaCourse course) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        int rowsAffected = db.delete(DatabaseHelper.TABLE_YOGA_COURSES,
+                DatabaseHelper.COLUMN_ID + " = ?",
+                new String[]{String.valueOf(course.getId())});
 
-    @Query("SELECT COUNT(*) FROM yoga_courses")
-    int getCoursesCount();
+        Log.d(TAG, "Deleted course. Rows affected: " + rowsAffected);
+    }
 
-    @Query("SELECT DISTINCT type FROM yoga_courses ORDER BY type")
-    List<String> getAllYogaTypes();
+    public List<YogaCourse> getAllCourses() {
+        List<YogaCourse> courses = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-    @Query("SELECT DISTINCT dayOfWeek FROM yoga_courses ORDER BY " +
-            "CASE dayOfWeek " +
-            "WHEN 'Monday' THEN 1 " +
-            "WHEN 'Tuesday' THEN 2 " +
-            "WHEN 'Wednesday' THEN 3 " +
-            "WHEN 'Thursday' THEN 4 " +
-            "WHEN 'Friday' THEN 5 " +
-            "WHEN 'Saturday' THEN 6 " +
-            "WHEN 'Sunday' THEN 7 " +
-            "END")
-    List<String> getAllDaysWithCourses();
+        String query = "SELECT * FROM " + DatabaseHelper.TABLE_YOGA_COURSES +
+                " ORDER BY " + DatabaseHelper.COLUMN_DAY_OF_WEEK + ", " +
+                DatabaseHelper.COLUMN_TIME;
+
+        Cursor cursor = db.rawQuery(query, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                courses.add(cursorToCourse(cursor));
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        Log.d(TAG, "Retrieved " + courses.size() + " courses");
+        return courses;
+    }
+
+    public YogaCourse getCourseById(int id) {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        YogaCourse course = null;
+
+        Cursor cursor = db.query(DatabaseHelper.TABLE_YOGA_COURSES, null,
+                DatabaseHelper.COLUMN_ID + " = ?",
+                new String[]{String.valueOf(id)}, null, null, null);
+
+        if (cursor.moveToFirst()) {
+            course = cursorToCourse(cursor);
+        }
+
+        cursor.close();
+        return course;
+    }
+
+    public List<YogaCourse> getCoursesByType(String type) {
+        List<YogaCourse> courses = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        String query = "SELECT * FROM " + DatabaseHelper.TABLE_YOGA_COURSES +
+                " WHERE " + DatabaseHelper.COLUMN_TYPE + " LIKE ? " +
+                " ORDER BY " + DatabaseHelper.COLUMN_DAY_OF_WEEK + ", " +
+                DatabaseHelper.COLUMN_TIME;
+
+        Cursor cursor = db.rawQuery(query, new String[]{"%" + type + "%"});
+
+        if (cursor.moveToFirst()) {
+            do {
+                courses.add(cursorToCourse(cursor));
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        return courses;
+    }
+
+    public List<YogaCourse> getCoursesByDay(String dayOfWeek) {
+        List<YogaCourse> courses = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        String query = "SELECT * FROM " + DatabaseHelper.TABLE_YOGA_COURSES +
+                " WHERE " + DatabaseHelper.COLUMN_DAY_OF_WEEK + " = ? " +
+                " ORDER BY " + DatabaseHelper.COLUMN_TIME;
+
+        Cursor cursor = db.rawQuery(query, new String[]{dayOfWeek});
+
+        if (cursor.moveToFirst()) {
+            do {
+                courses.add(cursorToCourse(cursor));
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        return courses;
+    }
+
+    public List<YogaCourse> searchCourses(String searchQuery) {
+        List<YogaCourse> courses = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        String query = "SELECT * FROM " + DatabaseHelper.TABLE_YOGA_COURSES +
+                " WHERE " + DatabaseHelper.COLUMN_TYPE + " LIKE ? OR " +
+                DatabaseHelper.COLUMN_DAY_OF_WEEK + " LIKE ? OR " +
+                DatabaseHelper.COLUMN_DESCRIPTION + " LIKE ? " +
+                " ORDER BY " + DatabaseHelper.COLUMN_DAY_OF_WEEK + ", " +
+                DatabaseHelper.COLUMN_TIME;
+
+        String searchPattern = "%" + searchQuery + "%";
+        Cursor cursor = db.rawQuery(query, new String[]{searchPattern, searchPattern, searchPattern});
+
+        if (cursor.moveToFirst()) {
+            do {
+                courses.add(cursorToCourse(cursor));
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        return courses;
+    }
+
+    public List<YogaCourse> getCoursesByPriceRange(double minPrice, double maxPrice) {
+        List<YogaCourse> courses = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        String query = "SELECT * FROM " + DatabaseHelper.TABLE_YOGA_COURSES +
+                " WHERE " + DatabaseHelper.COLUMN_PRICE + " BETWEEN ? AND ? " +
+                " ORDER BY " + DatabaseHelper.COLUMN_PRICE;
+
+        Cursor cursor = db.rawQuery(query, new String[]{
+                String.valueOf(minPrice), String.valueOf(maxPrice)});
+
+        if (cursor.moveToFirst()) {
+            do {
+                courses.add(cursorToCourse(cursor));
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        return courses;
+    }
+
+    public void deleteAllCourses() {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        int rowsAffected = db.delete(DatabaseHelper.TABLE_YOGA_COURSES, null, null);
+        Log.d(TAG, "Deleted all courses. Rows affected: " + rowsAffected);
+    }
+
+    public int getCoursesCount() {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM " +
+                DatabaseHelper.TABLE_YOGA_COURSES, null);
+
+        int count = 0;
+        if (cursor.moveToFirst()) {
+            count = cursor.getInt(0);
+        }
+
+        cursor.close();
+        return count;
+    }
+
+    public List<String> getAllYogaTypes() {
+        List<String> types = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        String query = "SELECT DISTINCT " + DatabaseHelper.COLUMN_TYPE +
+                " FROM " + DatabaseHelper.TABLE_YOGA_COURSES +
+                " ORDER BY " + DatabaseHelper.COLUMN_TYPE;
+
+        Cursor cursor = db.rawQuery(query, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                types.add(cursor.getString(0));
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        return types;
+    }
+
+    public List<String> getAllDaysWithCourses() {
+        List<String> days = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        String query = "SELECT DISTINCT " + DatabaseHelper.COLUMN_DAY_OF_WEEK +
+                " FROM " + DatabaseHelper.TABLE_YOGA_COURSES +
+                " ORDER BY " +
+                "CASE " + DatabaseHelper.COLUMN_DAY_OF_WEEK + " " +
+                "WHEN 'Monday' THEN 1 " +
+                "WHEN 'Tuesday' THEN 2 " +
+                "WHEN 'Wednesday' THEN 3 " +
+                "WHEN 'Thursday' THEN 4 " +
+                "WHEN 'Friday' THEN 5 " +
+                "WHEN 'Saturday' THEN 6 " +
+                "WHEN 'Sunday' THEN 7 " +
+                "END";
+
+        Cursor cursor = db.rawQuery(query, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                days.add(cursor.getString(0));
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        return days;
+    }
+
+    private YogaCourse cursorToCourse(Cursor cursor) {
+        YogaCourse course = new YogaCourse();
+
+        course.setId(cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_ID)));
+        course.setDayOfWeek(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_DAY_OF_WEEK)));
+        course.setTime(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_TIME)));
+        course.setCapacity(cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_CAPACITY)));
+        course.setDuration(cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_DURATION)));
+        course.setPrice(cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_PRICE)));
+        course.setType(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_TYPE)));
+        course.setDescription(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_DESCRIPTION)));
+
+        return course;
+    }
 }

@@ -42,10 +42,6 @@ dependencies {
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
 
-    // Room (SQLite ORM)
-    implementation(libs.room.runtime)
-    annotationProcessor(libs.room.compiler)
-
     implementation(libs.recyclerview)
     implementation(libs.cardview)
 
@@ -60,7 +56,4 @@ dependencies {
     // For QR Code generation
     implementation(libs.zxing.android.embedded)
     implementation(libs.core)
-
-    // For better date/time pickers
-    implementation(libs.material.calendarview)
 }

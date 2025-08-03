@@ -38,7 +38,7 @@ public class AddEditScheduleActivity extends AppCompatActivity {
     private ExecutorService executor;
 
     private List<YogaCourse> allCourses = new ArrayList<>();
-    private int scheduleId = -1; // -1 means new schedule
+    private int scheduleId = -1;
     private Schedule existingSchedule;
 
     private Calendar selectedDate = Calendar.getInstance();
