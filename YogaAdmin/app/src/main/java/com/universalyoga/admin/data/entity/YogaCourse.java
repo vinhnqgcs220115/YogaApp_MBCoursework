@@ -1,3 +1,4 @@
+// YogaAdmin/app/src/main/java/com.universalyoga.admin.data.entity/YogaCourse.java
 package com.universalyoga.admin.data.entity;
 
 public class YogaCourse {

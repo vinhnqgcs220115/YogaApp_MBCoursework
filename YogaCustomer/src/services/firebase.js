@@ -1,3 +1,4 @@
+// firebase.js
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import {
   getAuth,
@@ -7,7 +8,7 @@ import {
 import { getFirestore } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Your Firebase configuration
+// Firebase configuration
 const firebaseConfig = {
   apiKey: 'AIzaSyDDpFXklFpWbpLFo3_TCe2YMeZEQDkxQIE',
   authDomain: 'universalyoga-admin.firebaseapp.com',
@@ -19,6 +20,8 @@ const firebaseConfig = {
 
 // Initialize Firebase App with logging
 let app;
+let auth;
+
 try {
   if (!getApps().length) {
     console.log('Initializing Firebase app...');
@@ -26,7 +29,7 @@ try {
     console.log('Firebase app initialized successfully');
   } else {
     console.log('Getting existing Firebase app...');
-    app = getApp();
+    app = getApp()[0];
     console.log('Retrieved existing Firebase app');
   }
 } catch (error) {
@@ -35,7 +38,6 @@ try {
 }
 
 // Initialize Auth with enhanced error handling
-let auth;
 try {
   console.log('Initializing Firebase Auth...');
   auth = initializeAuth(app, {
@@ -57,6 +59,14 @@ console.log('Initializing Firestore...');
 const db = getFirestore(app);
 console.log('Firestore initialized successfully');
 
+// Connect to emulators if running locally
+if (process.env.FIRESTORE_EMULATOR_HOST) {
+  connectFirestoreEmulator(db, 'localhost', 8080);
+}
+if (process.env.FIREBASE_AUTH_EMULATOR_HOST) {
+  connectAuthEmulator(auth, 'http://localhost:9099');
+}
+
 // Verify initialization
 console.log('Firebase initialization complete:', {
   appInitialized: !!app,
@@ -65,5 +75,5 @@ console.log('Firebase initialization complete:', {
 });
 
 // Export instances
-export { auth, db, app };
+export { app, auth, db };
 export default app;

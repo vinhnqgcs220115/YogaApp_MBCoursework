@@ -1,3 +1,4 @@
+// HomeScreen.js
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import { colors } from '../../utils/colors';
@@ -20,7 +21,7 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.background.primary,
   },
   content: {
     flex: 1,
@@ -29,18 +30,24 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   title: {
-    ...fonts.heading1,
-    color: colors.textPrimary,
+    fontFamily: fonts.families.secondary,
+    fontSize: fonts.sizes['4xl'],
+    fontWeight: fonts.weights.bold,
+    color: colors.text.primary,
     marginBottom: 10,
   },
   subtitle: {
-    ...fonts.heading3,
-    color: colors.textSecondary,
+    fontFamily: fonts.families.secondary,
+    fontSize: fonts.sizes.xl,
+    fontWeight: fonts.weights.semiBold,
+    color: colors.text.secondary,
     marginBottom: 8,
   },
   description: {
-    ...fonts.body,
-    color: colors.textTertiary,
+    fontFamily: fonts.families.primary,
+    fontSize: fonts.sizes.base,
+    fontWeight: fonts.weights.normal,
+    color: colors.text.tertiary,
     textAlign: 'center',
   },
 });

@@ -1,3 +1,4 @@
+// ProfileScreen.js
 import React from 'react';
 import {
   View,
@@ -40,7 +41,7 @@ const ProfileScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.background.primary,
   },
   content: {
     flex: 1,
@@ -49,25 +50,31 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   title: {
-    ...fonts.heading1,
-    color: colors.textPrimary,
+    fontFamily: fonts.families.secondary,
+    fontSize: fonts.sizes['4xl'],
+    fontWeight: fonts.weights.bold,
+    color: colors.text.primary,
     marginBottom: 10,
   },
   subtitle: {
-    ...fonts.heading3,
-    color: colors.textSecondary,
+    fontFamily: fonts.families.primary,
+    fontSize: fonts.sizes.lg,
+    fontWeight: fonts.weights.medium,
+    color: colors.text.secondary,
     marginBottom: 30,
     textAlign: 'center',
   },
   logoutButton: {
-    backgroundColor: colors.error,
+    backgroundColor: colors.error[500],
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
   },
   logoutButtonText: {
-    ...fonts.button,
-    color: colors.white,
+    fontFamily: fonts.families.primary,
+    fontSize: fonts.sizes.base,
+    fontWeight: fonts.weights.semiBold,
+    color: colors.neutral[0],
   },
 });
 

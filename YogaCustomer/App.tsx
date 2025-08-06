@@ -1,29 +1,23 @@
+// App.tsx
 import React from 'react';
-import { StatusBar, View, Text } from 'react-native';
+import { StatusBar } from 'react-native';
 import { AuthProvider } from './src/context/AuthContext';
+import { CartProvider } from './src/context/CartContext';
 import AppNavigator from './src/navigation/AppNavigator';
+import { colors } from './src/utils/colors';
 
 const App = () => {
-  console.log('App component rendered');
   return (
     <>
-      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={colors.background.primary}
+        translucent={false}
+      />
       <AuthProvider>
-        <React.Suspense
-          fallback={
-            <View
-              style={{
-                flex: 1,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Text>Loading App...</Text>
-            </View>
-          }
-        >
+        <CartProvider>
           <AppNavigator />
-        </React.Suspense>
+        </CartProvider>
       </AuthProvider>
     </>
   );
