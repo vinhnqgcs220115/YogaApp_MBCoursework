@@ -313,6 +313,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
                     android:text="Edit Course"
+                    android:textColor="@color/white"
                     android:textSize="16sp"
                     app:icon="@drawable/ic_edit"
                     app:layout_constraintTop_toTopOf="parent"

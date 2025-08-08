@@ -97,7 +97,7 @@ const OnboardingScreen = ({ navigation }) => {
           {/* Welcome Text */}
           <View style={styles.welcomeContainer}>
             <Text style={styles.welcomeTitle}>Welcome to</Text>
-            <Text style={styles.appName}>ZenFlow</Text>
+            <Text style={styles.appName}>Universal Yoga</Text>
             <Text style={styles.tagline}>
               Find your inner peace through guided yoga sessions
             </Text>

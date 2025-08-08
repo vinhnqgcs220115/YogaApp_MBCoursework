@@ -233,6 +233,7 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginStart="8dp"
                 android:text="Save Schedule"
+                android:textColor="@color/white"
                 app:icon="@android:drawable/ic_menu_save"
                 app:layout_constraintTop_toBottomOf="@id/cardScheduleDetails"
                 app:layout_constraintStart_toEndOf="@id/btnClear"

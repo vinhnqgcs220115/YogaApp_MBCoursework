@@ -61,7 +61,7 @@ const LoadingScreen = () => {
         {/* App Logo/Icon */}
         <View style={styles.logoContainer}>
           <Text style={styles.logoEmoji}>🧘‍♀️</Text>
-          <Text style={styles.logoText}>ZenFlow</Text>
+          <Text style={styles.logoText}>UniversalYoga</Text>
         </View>
 
         {/* Loading Indicator */}
@@ -71,7 +71,7 @@ const LoadingScreen = () => {
             color={colors.neutral[0]}
             style={styles.spinner}
           />
-          <Text style={styles.loadingText}>Preparing your zen space...</Text>
+          <Text style={styles.loadingText}>Preparing your space...</Text>
         </View>
 
         {/* Decorative Elements */}

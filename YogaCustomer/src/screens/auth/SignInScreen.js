@@ -136,7 +136,7 @@ const SignInScreen = ({ navigation }) => {
                 <Text style={styles.title}>Welcome back</Text>
               </View>
               <Text style={styles.subtitle}>
-                Sign in to continue your yoga journey with ZenFlow
+                Sign in to continue your yoga journey with UniversalYoga
               </Text>
             </View>
 

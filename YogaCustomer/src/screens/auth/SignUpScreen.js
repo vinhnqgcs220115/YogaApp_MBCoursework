@@ -209,7 +209,7 @@ const SignUpScreen = ({ navigation }) => {
                 <Text style={styles.title}>Create Account</Text>
               </View>
               <Text style={styles.subtitle}>
-                Join ZenFlow and start your journey to inner peace
+                Join UniversalYoga and start your journey to inner peace
               </Text>
             </View>
 
